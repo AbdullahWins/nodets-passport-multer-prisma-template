@@ -5,44 +5,35 @@ import { staticProps } from "../constants/static.constant";
 import { ApiError, handleApiErrorResponse } from "./api.error";
 import { environment } from "../../configs";
 import { IErrorResponse } from "../../interfaces";
-import { MongoServerError } from "mongodb";
-import { MongooseError } from "mongoose";
-import {
-  handleMongooseError,
-  handleMongooseServerError,
-} from "./mongoose.error";
+import { handlePrismaError } from "./prisma.error"; // Updated import for Prisma error handling
 import { MulterError } from "multer";
 import { handleMulterError } from "./multer.error";
 import { handleZodError } from "./zod.error";
 import { errorLogger } from "../../services";
 
+// Get a structured error response from different error types
 const getErrorResponse = (error: any): IErrorResponse => {
-  //handle ApiError
+  // Handle ApiError
   if (error instanceof ApiError) {
     handleApiErrorResponse(error);
   }
 
-  //handle mongoose error
-  if (error instanceof MongoServerError) {
-    return handleMongooseServerError(error);
+  // Handle Prisma errors
+  if (error.name === "PrismaClientValidationError" || error.code) {
+    return handlePrismaError(error);
   }
 
-  //handle mongoose error
-  if (error instanceof MongooseError) {
-    return handleMongooseError(error);
-  }
-
-  //handle multer error
+  // Handle multer error
   if (error instanceof MulterError) {
     return handleMulterError(error);
   }
 
-  //handle zod error
+  // Handle zod error
   if (error instanceof Error && error.name === "ZodError") {
     return handleZodError(error);
   }
 
-  // Handle generic errors
+  // Handle generic errors (fallback)
   return {
     statusCode: error?.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
     message: error?.message || staticProps.common.SOMETHING_WENT_WRONG,
@@ -53,17 +44,23 @@ const getErrorResponse = (error: any): IErrorResponse => {
   };
 };
 
+// Global error handler middleware
 export const globalErrorHandler: ErrorRequestHandler = (
   error,
   _req: Request,
   res: Response,
   _next: NextFunction
 ) => {
+  // Get the structured error response
   const errorResponse = getErrorResponse(error);
+
+  // Determine if we're in a production environment
   const isProduction = environment.server.SERVER_ENV === "production";
 
+  // Log the error message for debugging
   errorLogger.error(error.message);
 
+  // Production environment: less verbose error message
   if (isProduction) {
     return res.status(errorResponse.statusCode).json({
       statusCode: errorResponse.statusCode,
@@ -72,6 +69,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
       data: null,
     });
   } else {
+    // Development environment: more verbose error message with detailed stack
     return res.status(errorResponse.statusCode).json({
       statusCode: errorResponse.statusCode,
       success: errorResponse.success,
