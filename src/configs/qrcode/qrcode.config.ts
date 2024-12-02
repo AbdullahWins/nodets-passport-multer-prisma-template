@@ -1,5 +1,5 @@
 import { IQRCodeOptions } from "../../interfaces";
-import { staticProps } from "../../utils";
+import { staticProps } from "../../constants";
 
 // Options for QR code generation
 export const qrCodeOptions: IQRCodeOptions = {

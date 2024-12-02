@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from "express";
 import httpStatus from "http-status";
 import { IErrorResponse } from "../../interfaces";
 import { httpRequestDurationMicroseconds } from "../../configs";
-import { staticProps } from "../../utils";
+import { staticProps } from "../../constants";
 
 // Middleware to track request duration
 export const promClientMiddleware = (

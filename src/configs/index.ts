@@ -1,5 +1,4 @@
 // src/configs/index.ts
-export * from "./database/database.config";
 export * from "./database/prisma.config";
 export * from "./email/email.config";
 export * from "./environment/environment.config";

@@ -1,133 +1,136 @@
-import { PrismaClient, Admin } from "@prisma/client";
-import { IAdmin } from "../../interfaces";
-import { ApiError } from "../../utils";
+import { PrismaClient } from "@prisma/client";
+import { IAdminLogin, IAdminSignup, IAdminUpdate } from "../../interfaces";
+import {
+  ApiError,
+  generateJwtToken,
+  hashPassword,
+  sendEmail,
+  uploadFiles,
+  validateZodSchema,
+} from "../../utilities";
+import { AdminResponseDto } from "../../dtos";
+import { AdminSignupDtoZodSchema } from "../../validators";
+import {
+  createAdminRepo,
+  getAdminByIdRepo,
+  getAllAdminsRepo,
+  updateAdminByIdRepo,
+  deleteAdminByIdRepo,
+} from "../../repositories";
 import httpStatus from "http-status";
-import { uploadFiles } from "../file/file.service";
-import { hashPassword } from "../bcrypt/bcrypt.service";
+import { emailProps, staticProps } from "../../constants";
 
 const prisma = new PrismaClient();
 
-// Get all admins with pagination
-export const getAllAdmins = async (page: number, limit: number) => {
-  try {
-    const admins = await prisma.admin.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+// Admin Login Service
+export const SignInAdminService = async (loginData: IAdminLogin) => {
+  const admin = await prisma.admin.findUnique({
+    where: { email: loginData.email },
+  });
 
-    const totalAdmins = await prisma.admin.count();
-
-    return {
-      data: admins,
-      meta: { totalAdmins, page, limit },
-    };
-  } catch (error) {
+  if (!admin) {
     throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Error fetching admins"
+      httpStatus.UNAUTHORIZED,
+      staticProps.common.INVALID_CREDENTIALS
     );
   }
+
+  const token = generateJwtToken(admin);
+  return { accessToken: token, admin: new AdminResponseDto(admin) };
 };
 
-// Get one admin by ID
-export const getAdminById = async (adminId: number): Promise<Admin | null> => {
-  try {
-    return await prisma.admin.findUnique({
-      where: { id: adminId },
-    });
-  } catch (error) {
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Error fetching admin"
-    );
-  }
-};
-
-// Check if an admin exists by email
-export const isEntityExistsByEmail = async (
-  email: string
-): Promise<IAdmin | null> => {
-  try {
-    return await prisma.admin.findUnique({
-      where: { email },
-    });
-  } catch (error) {
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Error checking admin by email"
-    );
-  }
-};
-
-// Update one admin by ID
-export const updateAdminById = async (
-  adminId: number,
-  data: IAdmin,
-  password?: string,
-  files?: Express.Multer.File[]
+// Admin SignUp Service
+export const SignUpAdminService = async (
+  signupData: IAdminSignup,
+  files?: any
 ) => {
-  try {
-    // Check if the admin exists
-    const existsAdmin = await prisma.admin.findUnique({
-      where: { id: adminId },
-    });
+  // Validate schema
+  validateZodSchema(AdminSignupDtoZodSchema, signupData);
 
-    if (!existsAdmin) {
-      throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
-    }
-
-    let updatedData: IAdmin = { ...data };
-
-    // Hash password if provided
-    if (password) {
-      updatedData.password = await hashPassword(password);
-    }
-
-    // Handle file upload if any
-    if (files && files.length > 0) {
-      const { filePath } = await uploadFiles(files);
-      updatedData.image = filePath || existsAdmin.image; // Use existing image if no new upload
-    }
-
-    // Update admin in the database
-    const updatedAdmin = await prisma.admin.update({
-      where: { id: adminId },
-      data: updatedData,
-    });
-
-    return updatedAdmin;
-  } catch (error) {
+  // Check if admin already exists
+  const existingAdmin = await prisma.admin.findUnique({
+    where: { email: signupData.email },
+  });
+  if (existingAdmin) {
     throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Error updating admin"
+      httpStatus.BAD_REQUEST,
+      staticProps.common.ALREADY_EXISTS
     );
   }
+
+  // Hash password
+  const hashedPassword = await hashPassword(signupData.password);
+
+  // Handle file upload (profile image)
+  let imagePath = staticProps.default.DEFAULT_IMAGE_PATH;
+  if (files && files.single) {
+    const { filePath } = await uploadFiles(files.single);
+    imagePath = filePath || imagePath;
+  }
+
+  // Create admin
+  const createdAdmin = await createAdminRepo({
+    ...signupData,
+    password: hashedPassword,
+    image: imagePath,
+  });
+
+  // Send welcome email
+  sendEmail({
+    email: signupData.email,
+    subject: emailProps.subject.WELCOME_ADMIN,
+    template: emailProps.template.WELCOME_ADMIN,
+    data: { name: signupData.fullName },
+  });
+
+  const adminDto = new AdminResponseDto(createdAdmin);
+  const token = generateJwtToken({
+    id: createdAdmin.id,
+    email: createdAdmin.email,
+    role: createdAdmin.role,
+  });
+
+  return { accessToken: token, admin: adminDto };
 };
 
-// Delete one admin by ID
-export const deleteAdminById = async (adminId: number): Promise<Admin> => {
-  try {
-    return await prisma.admin.delete({
-      where: { id: adminId },
-    });
-  } catch (error) {
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Error deleting admin"
-    );
-  }
+// Get All Admins Service
+export const GetAllAdminsService = async (page: number, limit: number) => {
+  const { data, meta } = await getAllAdminsRepo(page, limit);
+  return { data: data.map((admin) => new AdminResponseDto(admin)), meta };
 };
 
-// Create a new admin
-export const createAdmin = async (data: IAdmin): Promise<Admin> => {
-  try {
-    return await prisma.admin.create({
-      data,
-    });
-  } catch (error) {
-    throw new ApiError(
-      httpStatus.INTERNAL_SERVER_ERROR,
-      "Error creating admin"
-    );
+// Get Admin by ID Service
+export const GetAdminByIdService = async (adminId: number) => {
+  const admin = await getAdminByIdRepo(adminId);
+  if (!admin) {
+    throw new ApiError(httpStatus.NOT_FOUND, staticProps.common.NOT_FOUND);
   }
+  return new AdminResponseDto(admin);
+};
+
+// Update Admin by ID Service
+export const UpdateAdminByIdService = async (
+  adminId: number,
+  data: IAdminUpdate,
+  files?: any
+) => {
+  if (data.password) {
+    data.password = await hashPassword(data.password);
+  }
+
+  // Handle file upload (profile image)
+  if (files && files.single) {
+    const { filePath } = await uploadFiles(files.single);
+    if (filePath) {
+      data.image = filePath;
+    }
+  }
+
+  const updatedAdmin = await updateAdminByIdRepo(adminId, data);
+  return new AdminResponseDto(updatedAdmin);
+};
+
+// Delete Admin by ID Service
+export const DeleteAdminByIdService = async (adminId: number) => {
+  await deleteAdminByIdRepo(adminId);
 };

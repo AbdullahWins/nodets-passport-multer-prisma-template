@@ -6,7 +6,7 @@ import {
   configureLocalStrategy,
 } from "./strategies";
 import { environment } from "../environment/environment.config";
-import { ApiError } from "../../utils";
+import { ApiError } from "../../utilities";
 // import { PrismaClient } from "@prisma/client";
 
 // const prisma = new PrismaClient();

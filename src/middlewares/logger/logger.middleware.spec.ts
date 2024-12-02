@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { getRequestFulllUrl } from "../../utils";
+import { getRequestFulllUrl } from "../../utilities";
 import { requestLoggerMiddleware } from "./logger.middleware";
-import { httpLogger } from "../../services";
+import { httpLogger } from "../../utilities";
 
-jest.mock("../../services/logger/logger.service", () => ({
+jest.mock("../../utilities/logger/logger.service", () => ({
   httpLogger: {
     http: jest.fn(),
   },

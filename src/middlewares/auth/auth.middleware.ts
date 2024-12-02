@@ -3,8 +3,10 @@
 import { NextFunction, Request, Response } from "express";
 import passport from "passport";
 import httpStatus from "http-status";
-import { ApiError, ENUM_AUTH_ROLES, staticProps } from "../../utils";
+import { ApiError } from "../../utilities";
 import { IJwtPayload } from "../../interfaces";
+import { staticProps } from "../../constants";
+import { ENUM_AUTH_ROLES } from "../../enums";
 
 // Auth middleware for roles
 export const authorizeEntity =

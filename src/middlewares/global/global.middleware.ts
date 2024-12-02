@@ -2,7 +2,6 @@ import express from "express";
 import { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import sanitize from "express-mongo-sanitize";
 import { upload } from "../../configs/multer/multer.config";
 import { requestLoggerMiddleware } from "../logger/logger.middleware";
 import { promClientMiddleware } from "../monitor/monitor.middleware";
@@ -12,7 +11,6 @@ import { parseJsonBodyMiddleware } from "../parse/parse.middleware";
 
 export const globalMiddleware = (app: Application) => {
   app.use(cors());
-  app.use(sanitize());
   app.use(helmet());
   app.use(requestLoggerMiddleware);
 

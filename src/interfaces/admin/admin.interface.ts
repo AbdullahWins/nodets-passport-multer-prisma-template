@@ -33,6 +33,14 @@ export interface IAdminLogin {
   password: string;
 }
 
+export interface IAdminUpdate {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+  image?: string;
+}
+
 // Admin response DTO interface (for response formatting)
 export interface IAdminResponseDto {
   id: number;

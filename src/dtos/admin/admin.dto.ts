@@ -1,5 +1,5 @@
 import { IAdmin } from "../../interfaces";
-import { getFileUrl } from "../../utils";
+import { getFileUrl } from "../../utilities";
 
 // Base Admin DTO with minimal properties for strict typing
 class AdminDtoBase implements Partial<IAdmin> {

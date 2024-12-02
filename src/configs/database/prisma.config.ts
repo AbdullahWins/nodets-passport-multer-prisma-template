@@ -1,6 +1,6 @@
 // src/configs/database/prisma.config.ts
 import { PrismaClient } from "@prisma/client";
-import { errorLogger, infoLogger } from "../../services";
+import { errorLogger, infoLogger } from "../../utilities";
 
 // Initialize Prisma Client only once
 export const prisma = new PrismaClient();

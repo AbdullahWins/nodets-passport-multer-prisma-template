@@ -2,7 +2,7 @@
 import express, { Application } from "express";
 import { startServer } from "./configs";
 import { checkImageExists, globalMiddleware } from "./middlewares";
-import { globalErrorHandler } from "./utils";
+import { globalErrorHandler } from "./utilities";
 import { apiRouter } from "./routers/main/routes";
 import { metricsRouter, notFoundRouter } from "./routers";
 

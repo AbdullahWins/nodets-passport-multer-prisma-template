@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import moment from "moment";
-import { httpLogger } from "../../services";
-import { getRequestFulllUrl } from "../../utils";
+import { httpLogger } from "../../utilities";
+import { getRequestFulllUrl } from "../../utilities";
 
 export const requestLoggerMiddleware = (
   req: Request,

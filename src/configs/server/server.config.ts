@@ -3,7 +3,7 @@ import { Application } from "express";
 import { Server } from "http";
 import { connectToPostgres } from "../database/prisma.config";
 import { environment } from "../environment/environment.config";
-import { errorLogger, infoLogger } from "../../services";
+import { errorLogger, infoLogger } from "../../utilities";
 
 // Server related work
 process.on("uncaughtException", (error) => {

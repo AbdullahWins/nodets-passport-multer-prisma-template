@@ -1,7 +1,7 @@
 // src/configs/environment/environment.config.ts
 import dotenv from "dotenv";
 import path from "path";
-import { projectRootPath } from "../../utils";
+import { projectRootPath } from "../../utilities";
 
 dotenv.config({
   path: projectRootPath ? path.join(projectRootPath, ".env") : ".env",
@@ -12,14 +12,6 @@ export const environment = {
     SERVER_ENV: process.env.SERVER_ENV || "development",
     SERVER_PORT: Number(process.env.SERVER_PORT) || 5000,
     SERVER_BASE_URL: process.env.SERVER_BASE_URL || "http://localhost:6000",
-  },
-
-  db: {
-    MONGOOSE_URI: process.env.MONGOOSE_URI || "mongodb://localhost:27017",
-    DATABASE_NAME: process.env.DATABASE_NAME || "default",
-    CONNECTION_STRING:
-      `${process.env.MONGOOSE_URI}/${process.env.DATABASE_NAME}` ||
-      "mongodb://localhost:27017/default",
   },
 
   jwt: {
