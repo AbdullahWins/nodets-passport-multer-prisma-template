@@ -8,7 +8,6 @@
 //parse pagination query
 export const parseQueryData = (query: any): { page: number; limit: number } => {
   const page = query.page ? parseInt(query.page as string, 10) : 1;
-  const limit = query.limit ? parseInt(query.limit as string, 10) : 10;
+  const limit = query.limit ? parseInt(query.limit as string, 10) : 10000;
   return { page, limit };
 };
-

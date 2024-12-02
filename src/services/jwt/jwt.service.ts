@@ -5,7 +5,7 @@ import { IJwtPayload } from "../../interfaces";
 
 export const generateJwtToken = (data: IJwtPayload): string => {
   const payload = {
-    _id: data._id.toString(),
+    id: data.id,
     email: data.email,
     role: data.role,
   };

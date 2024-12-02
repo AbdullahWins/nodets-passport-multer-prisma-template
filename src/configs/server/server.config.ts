@@ -1,24 +1,24 @@
 // src/configs/server/server.config.ts
 import { Application } from "express";
 import { Server } from "http";
-import { connectToDatabase } from "../database/database.config";
+import { connectToPostgres } from "../database/prisma.config";
 import { environment } from "../environment/environment.config";
 import { errorLogger, infoLogger } from "../../services";
 
-// server related works
+// Server related work
 process.on("uncaughtException", (error) => {
-  errorLogger.error(`Error uncaught exception server: ${error.message}`);
+  errorLogger.error(`Uncaught exception server: ${error.message}`);
   process.exit(1);
 });
 
-// server listener
+// Server listener
 export const startServer = async (app: Application) => {
   let server: Server;
   try {
     // server listen
     server = app.listen(environment.server.SERVER_PORT, async () => {
-      // connect database after server started
-      await connectToDatabase();
+      // connect to database after server started
+      await connectToPostgres(); // Await the connection
 
       infoLogger.info(
         `Listening on port http://localhost:${environment.server.SERVER_PORT}/api/v1`

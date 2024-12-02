@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 import passport from "passport";
-import { AdminResponseDto, AdminSignupDtoZodSchema } from "../../dtos";
+import { AdminResponseDto } from "../../dtos";
 import {
   ApiError,
   catchAsync,
@@ -15,24 +15,24 @@ import {
   uploadFiles,
   validateZodSchema,
 } from "../../services";
-import { Admin } from "../../models";
+import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import {
-  IAdmin,
-  IMulterFiles,
-  PassportAuthError,
-  PassportAuthInfo,
-} from "../../interfaces";
+import { IAdmin, IAdminSignup, IAdminLogin } from "../../interfaces";
+import { AdminSignupDtoZodSchema } from "../../validators";
+
+// Initialize Prisma Client
+const prisma = new PrismaClient();
 
 // Admin Login using Local Strategy (email/password)
 export const SignInAdmin = (
-  req: Request,
+  req: Request<IAdminLogin>, // Strictly typing the request body
   res: Response,
   next: NextFunction
 ) => {
   passport.authenticate(
     "admin-local",
-    async (err: PassportAuthError, admin: IAdmin, info: PassportAuthInfo) => {
+    async (err: any, admin: IAdmin | null, info: any) => {
+      // Strict type for admin
       if (err) {
         return next(err);
       }
@@ -50,27 +50,33 @@ export const SignInAdmin = (
         return res.status(500).json({ message: "Token generation failed." });
       }
 
+      const adminFromDto = new AdminResponseDto(admin);
+
       // Return the token and admin info
       res.status(200).json({
         message: "Logged in successfully.",
         accessToken: token,
-        admin: admin, // Optionally, use DTO to format the admin response
+        admin: adminFromDto,
       });
     }
-  )(req, res, next); // Pass the request to passport.authenticate
+  )(req, res, next);
 };
 
-// signup admin
+// SignUp Admin (create new admin)
 export const SignUpAdmin: RequestHandler = catchAsync(
-  async (req: Request, res: Response) => {
-    // Get data
-    const { single } = req.files as IMulterFiles;
-    const { email, fullName, password, role } = req.body;
+  async (req: Request<{}, {}, IAdminSignup>, res: Response) => {
+    // Strict typing for request body
+    const { single } = req.files as { single?: Express.Multer.File[] };
+
+    const { email, fullName, password, role }: IAdminSignup = req.body;
 
     validateZodSchema(AdminSignupDtoZodSchema, req.body);
 
-    // Check if admin already exists
-    const findAdmin = await Admin.isEntityExistsByEmail(email as string);
+    // Check if admin already exists using Prisma
+    const findAdmin = await prisma.admin.findUnique({
+      where: { email },
+    });
+
     if (findAdmin) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
@@ -79,32 +85,33 @@ export const SignUpAdmin: RequestHandler = catchAsync(
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password as string);
+    const hashedPassword = await hashPassword(password);
 
     // Data to be stored
-    let constructedData = {
+    let constructedData: IAdminSignup = {
       email,
       fullName,
       password: hashedPassword,
-      image: staticProps.default.DEFAULT_IMAGE_PATH,
       role,
+      image: staticProps.default.DEFAULT_IMAGE_PATH, // default image in case no file is uploaded
     };
 
-    // Upload files
-    if (single) {
-      const { filePath } = await uploadFiles(single);
-      constructedData = {
-        ...constructedData,
-        image: filePath || staticProps.default.DEFAULT_IMAGE_PATH,
-      };
+    // Upload files if present
+    if (single && single.length > 0) {
+      // single is an array of files, so we get the path of the first file
+      const { filePath } = await uploadFiles(single); // Note: single is now expected to be an array
+      constructedData.image =
+        filePath || staticProps.default.DEFAULT_IMAGE_PATH; // fallback to default image if filePath is undefined
     }
 
-    // Create admin
-    const admin = await Admin.create(constructedData);
+    // Create admin using Prisma
+    const admin = await prisma.admin.create({
+      data: constructedData,
+    });
 
     // Generate JWT payload and token
     const JwtPayload = {
-      _id: admin._id,
+      id: admin.id, // Use Prisma's generated `id`
       email: admin.email,
       role: admin.role,
     };
@@ -112,31 +119,26 @@ export const SignUpAdmin: RequestHandler = catchAsync(
     // Generate token
     const token = generateJwtToken(JwtPayload);
 
-    // Email data
+    // Send welcome email asynchronously
     const emailData = {
-      email: email as string,
+      email: email,
       subject: emailProps.subject.WELCOME_ADMIN,
       template: emailProps.template.WELCOME_ADMIN,
       data: { name: fullName },
     };
-
-    // Send welcome email asynchronously
     sendEmail(emailData);
 
-    // Create admin DTO response
+    // Return admin data in response (using DTO)
     const adminFromDto = new AdminResponseDto(admin);
-
-    // Prepare updated data with token
-    const updatedData = {
-      accessToken: token,
-      admin: adminFromDto,
-    };
 
     // Send response
     sendResponse(res, {
       statusCode: httpStatus.OK,
       message: staticProps.common.CREATED,
-      data: updatedData,
+      data: {
+        accessToken: token,
+        admin: adminFromDto,
+      },
     });
   }
 );

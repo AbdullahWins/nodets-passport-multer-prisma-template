@@ -1,33 +1,47 @@
 // src/interfaces/admin/admin.interface.ts
-import { Model } from "mongoose";
-import { ICommonEntitySchema } from "../common/common.interface";
+import { Admin } from "@prisma/client";
 
-// admin interface
-export interface IAdmin extends ICommonEntitySchema {
+// Admin interface
+
+export interface IAdmin {
+  id: number;
   fullName: string;
-  isVerified?: boolean;
+  email: string;
+  password: string;
+  image: string;
+  role: string;
+  isEmailVerified: boolean;
+  otp?: string | null;
+  otpExpires?: number | null;
+  googleId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// admin signup interface
+// Admin signup interface
 export interface IAdminSignup {
-  googleId?: string;
-  fullName?: string;
-  email?: string;
-  password?: string;
-  role?: string;
+  fullName: string;
+  email: string;
+  password: string;
+  role: string;
+  image: string;
 }
 
-// admin login interface
+// Admin login interface
 export interface IAdminLogin {
-  googleId?: string;
-  email?: string;
-  password?: string;
+  email: string;
+  password: string;
 }
 
-// admin schema methods
-export interface IAdminModel extends Model<IAdmin> {
-  isEntityExistsById(adminId: string, select?: string): Promise<IAdmin | null>;
-  isEntityExistsByEmail(email: string, select?: string): Promise<IAdmin | null>;
+// Admin response DTO interface (for response formatting)
+export interface IAdminResponseDto {
+  id: number;
+  fullName: string;
+  email: string;
+  image: string;
+  role: string;
+  isEmailVerified?: boolean;
 }
 
-export interface IAdminDocument extends IAdmin, Document {}
+// For Prisma's generated Admin type (strictly type-safe)
+export type AdminFromPrisma = Admin;
