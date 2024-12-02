@@ -1,4 +1,4 @@
-export * from "./google.strategy";
+// export * from "./google.strategy";
 export * from "./jwt.strategy";
 export * from "./local.strategy";
-export * from "./otp.strategy";
+// export * from "./otp.strategy";

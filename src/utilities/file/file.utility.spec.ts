@@ -10,7 +10,7 @@ import {
 import { errorLogger, infoLogger } from "../logger/logger.utility"; // Adjust the import path as necessary
 
 jest.mock("fs");
-jest.mock("../logger/logger.service", () => ({
+jest.mock("../logger/logger.utility", () => ({
   errorLogger: {
     error: jest.fn(),
   },

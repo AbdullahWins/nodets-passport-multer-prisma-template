@@ -15,11 +15,11 @@ jest.mock("../../configs", () => ({
   },
 }));
 
-jest.mock("../handlebar/handlebar.service", () => ({
+jest.mock("../handlebar/handlebar.utility", () => ({
   renderTemplate: jest.fn(),
 }));
 
-jest.mock("../logger/logger.service", () => ({
+jest.mock("../logger/logger.utility", () => ({
   errorLogger: {
     error: jest.fn(),
   },

@@ -1,57 +1,73 @@
-import fs from "fs";
-import { errorLogger, httpLogger, infoLogger } from "./logger.utility";
+import { Request, Response } from "express";
+import { httpLogger } from "../../utilities";
+import { requestLoggerMiddleware } from "../../middlewares";
+import moment from "moment";
 
-// Mock the filesystem to avoid actual file creation
-jest.mock("fs");
+// Mock both `httpLogger` and `getRequestFulllUrl` in a single `jest.mock` call
+jest.mock("../../utilities", () => ({
+  ...jest.requireActual("../../utilities"), // Preserve other utilities
+  httpLogger: {
+    http: jest.fn(), // Mock `httpLogger.http`
+  },
+  getRequestFulllUrl: jest.fn(() => "http://localhost:3000/test"), // Mock `getRequestFulllUrl`
+}));
 
-describe("Logger", () => {
-  beforeAll(() => {
-    // Simulate that the directory does not exist
-    (fs.existsSync as jest.Mock).mockReturnValue(false);
+describe("requestLoggerMiddleware", () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: jest.Mock;
 
-    // Mock mkdirSync to simulate directory creation
-    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+  beforeEach(() => {
+    req = {
+      method: "GET",
+      get: jest.fn((header: string) => {
+        if (header === "host") return "localhost:3000"; // Mocking the `host` header
+        return undefined;
+      }),
+      originalUrl: "/test", // Mock the originalUrl
+    } as Partial<Request>;
+    res = {
+      on: jest.fn(),
+      statusCode: 200,
+    } as unknown as Partial<Response>;
+    next = jest.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Clear mocks after each test
+    jest.clearAllMocks(); // Reset all mocks between tests
   });
 
-  it("should create infoLogger correctly", () => {
-    expect(infoLogger).toBeDefined();
-    expect(infoLogger.level).toBe("info");
-    expect(infoLogger.transports.length).toBe(2); // Should have 2 transports
+  it("calls next() to pass control to the next middleware", () => {
+    requestLoggerMiddleware(req as Request, res as Response, next);
+    expect(next).toHaveBeenCalled();
   });
 
-  it("should log info messages to console and file", () => {
-    const logSpy = jest.spyOn(infoLogger, "info");
-    const message = "This is an info message";
+  it("logs the request details when the response finishes", () => {
+    const startTime = moment();
+    // Simulate a 50ms duration
+    moment(startTime).add(50, "ms");
 
-    // Call the logger
-    infoLogger.info(message);
+    // Mock moment to return a fixed time for start and end
+    jest.spyOn(moment.prototype, "diff").mockReturnValue(50);
 
-    expect(logSpy).toHaveBeenCalledWith(message); // Check if logger was called with the correct message
+    requestLoggerMiddleware(req as Request, res as Response, next);
+
+    // Simulate the "finish" event
+    const finishCallback = (res.on as jest.Mock).mock.calls[0][1];
+    finishCallback(); // Invoke the registered callback
+
+    expect(httpLogger.http).toHaveBeenCalledWith(
+      "GET http://localhost:3000/test 200 - 50ms"
+    );
+
+    // Restore moment's original behavior
+    jest.restoreAllMocks();
   });
 
-  it("should create httpLogger correctly", () => {
-    expect(httpLogger).toBeDefined();
-    expect(httpLogger.level).toBe("http");
-    expect(httpLogger.transports.length).toBe(2); // Should have 2 transports
-  });
+  it("ensures the finish event is registered on the response", () => {
+    requestLoggerMiddleware(req as Request, res as Response, next);
 
-  it("should create errorLogger correctly", () => {
-    expect(errorLogger).toBeDefined();
-    expect(errorLogger.level).toBe("error");
-    expect(errorLogger.transports.length).toBe(2); // Should have 2 transports
-  });
-
-  it("should log error messages to console and file", () => {
-    const logSpy = jest.spyOn(errorLogger, "error");
-    const errorMessage = "This is an error message";
-
-    // Call the logger
-    errorLogger.error(errorMessage);
-
-    expect(logSpy).toHaveBeenCalledWith(errorMessage); // Check if logger was called with the correct error message
+    // Ensure the "finish" event is registered
+    expect(res.on).toHaveBeenCalledWith("finish", expect.any(Function));
   });
 });

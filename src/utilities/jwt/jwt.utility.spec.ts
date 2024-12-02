@@ -2,20 +2,19 @@ import { generateJwtToken, verifyJwtToken } from "./jwt.utility"; // Adjust the 
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import { IJwtPayload } from "../../interfaces";
 import { environment } from "../../configs";
-import { ObjectId } from "bson";
 
 // Mock the jsonwebtoken module
 jest.mock("jsonwebtoken");
 
 describe("JWT Service", () => {
   const mockUser: IJwtPayload = {
-    _id: new ObjectId("64b642d1a4c8f97d6d4a1abc"),
+    id: 635345345345,
     email: "abc@gmail.com",
     role: "user", // Add role to match the actual implementation
   };
   const mockToken = "mockedToken";
   const mockSecret: Secret = "testSecret"; // Example secret
-  const mockPayload: JwtPayload = { _id: "12345" };
+  const mockPayload: JwtPayload = { id: 12345 };
 
   beforeEach(() => {
     jest.clearAllMocks(); // Clear mocks before each test
@@ -30,7 +29,7 @@ describe("JWT Service", () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         {
-          _id: mockUser._id.toString(), // Convert ObjectId to string as implemented
+          id: mockUser.id,
           email: mockUser.email,
           role: mockUser.role,
         },
