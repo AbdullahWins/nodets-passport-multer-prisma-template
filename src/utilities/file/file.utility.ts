@@ -1,6 +1,8 @@
 import fs from "fs";
 import { errorLogger, infoLogger } from "../logger/logger.utility";
 import { IUploadFile } from "../../interfaces";
+import { compressImage } from "../compression/sharp.utility";
+import path from "path";
 
 export const removeFile = async (imgPath: string) => {
   try {
@@ -51,6 +53,48 @@ const returnMultipleFilePath = async (files: any) => {
 };
 
 // Get file paths based on existing store values or as undefined
+// export const uploadFiles = async (
+//   single?: IUploadFile[],
+//   document?: IUploadFile[],
+//   multiple?: IUploadFile[]
+// ): Promise<{
+//   filePath?: string | undefined; // Allow undefined
+//   documentPath?: string | undefined; // Allow undefined
+//   filesPath?: string[] | undefined; // Allow undefined
+// }> => {
+//   let filePath: string | undefined;
+//   let documentPath: string | undefined;
+//   let filesPath: string[] | undefined;
+
+//   if (single && single.length > 0) {
+//     filePath = await returnSingleFilePath(single);
+//   }
+
+//   if (document && document.length > 0) {
+//     documentPath = await returnSingleFilePath(document);
+//   }
+
+//   if (multiple && multiple.length > 0) {
+//     filesPath = await returnMultipleFilePath(multiple);
+//   }
+
+//   return { filePath, documentPath, filesPath };
+// };
+
+// Compress image if it's an image file (e.g., jpg, jpeg, png)
+const compressIfNeeded = async (filePath: string): Promise<string> => {
+  const extname = path.extname(filePath).toLowerCase();
+  const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+  if (imageExtensions.includes(extname)) {
+    // Compress the image using sharp and overwrite original
+    return await compressImage(filePath);
+  }
+
+  // If not an image, return the original path
+  return filePath;
+};
+
 export const uploadFiles = async (
   single?: IUploadFile[],
   document?: IUploadFile[],
@@ -64,16 +108,29 @@ export const uploadFiles = async (
   let documentPath: string | undefined;
   let filesPath: string[] | undefined;
 
+  // Handle single file upload
   if (single && single.length > 0) {
     filePath = await returnSingleFilePath(single);
+    if (filePath) {
+      // Compress the image if needed (overwrite the original)
+      filePath = await compressIfNeeded(filePath);
+    }
   }
 
+  // Handle document upload (no compression needed here)
   if (document && document.length > 0) {
     documentPath = await returnSingleFilePath(document);
   }
 
+  // Handle multiple file uploads
   if (multiple && multiple.length > 0) {
     filesPath = await returnMultipleFilePath(multiple);
+    // Compress images in multiple uploads if they are images
+    if (filesPath) {
+      filesPath = await Promise.all(
+        filesPath.map((path) => compressIfNeeded(path))
+      );
+    }
   }
 
   return { filePath, documentPath, filesPath };

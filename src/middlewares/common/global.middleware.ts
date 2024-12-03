@@ -2,7 +2,7 @@ import express from "express";
 import { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { uploadFields } from "../../configs/multer/multer.config";
+import { upload } from "../../configs/multer/multer.config";
 import { requestLoggerMiddleware } from "../logger/logger.middleware";
 import { promClientMiddleware } from "../monitor/monitor.middleware";
 import passport from "passport";
@@ -25,7 +25,13 @@ export const globalMiddleware = (app: Application) => {
   app.use(express.urlencoded({ extended: true }));
 
   // Multer middleware for handling multipart/form-data (both files and text)
-  app.use(uploadFields);
+  app.use(
+    upload.fields([
+      { name: "single", maxCount: 1 },
+      { name: "document", maxCount: 1 },
+      { name: "multiple", maxCount: 10 },
+    ])
+  );
 
   // Custom JSON parsing middleware
   app.use(parseJsonBodyMiddleware);
