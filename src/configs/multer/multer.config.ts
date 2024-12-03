@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({
+const upload = multer({
   storage: storage,
   fileFilter: (
     _req: Request,
@@ -39,3 +39,9 @@ export const upload = multer({
     }
   },
 });
+
+export const uploadFields = upload.fields([
+  { name: "single", maxCount: 1 },
+  { name: "document", maxCount: 1 },
+  { name: "multiple", maxCount: 10 },
+]);
