@@ -4,6 +4,7 @@ import {
   ApiError,
   generateJwtToken,
   hashPassword,
+  removeFile,
   sendEmail,
   uploadFiles,
   validateZodSchema,
@@ -123,6 +124,15 @@ export const UpdateAdminByIdService = async (
     const { filePath } = await uploadFiles(files.single);
     if (filePath) {
       data.image = filePath;
+    }
+    //delete the previous image if it's not the default image
+    const admin = await getAdminByIdRepo(adminId);
+    if (!admin) {
+      throw new ApiError(httpStatus.NOT_FOUND, staticProps.common.NOT_FOUND);
+    }
+    if (admin.image !== staticProps.default.DEFAULT_IMAGE_PATH) {
+      //delete the previous image where possible
+      removeFile(admin.image);
     }
   }
 
