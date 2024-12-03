@@ -6,7 +6,7 @@ const router = express.Router();
 import { authorizeEntity, authenticateEntity } from "../../middlewares";
 
 //enum
-import { ENUM_AUTH_ROLES } from "../../enums";
+import { ENUM_AUTH_ROLES } from "../../constants/enums";
 
 // controllers
 import {

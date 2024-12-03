@@ -6,7 +6,7 @@ import httpStatus from "http-status";
 import { ApiError } from "../../utilities";
 import { IJwtPayload } from "../../interfaces";
 import { staticProps } from "../../constants";
-import { ENUM_AUTH_ROLES } from "../../enums";
+import { ENUM_AUTH_ROLES } from "../../constants/enums";
 
 // Auth middleware for roles
 export const authorizeEntity =

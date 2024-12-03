@@ -10,7 +10,7 @@ import {
   ENUM_ADMIN_ROLES,
   // ENUM_STORE_ROLES,
   // ENUM_USER_ROLES,
-} from "../../../enums";
+} from "../../../constants";
 import { staticProps } from "../../../constants";
 
 const prisma = new PrismaClient();

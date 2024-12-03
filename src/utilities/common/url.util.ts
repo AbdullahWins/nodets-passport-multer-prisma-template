@@ -1,6 +1,6 @@
 // src/utils/helpers/global/url.util.ts
 import { Request } from "express";
-import { environment } from "../../../configs";
+import { environment } from "../../configs";
 
 export const getRequestFulllUrl = (req: Request) => {
   return "https://" + req.get("host") + req.originalUrl;

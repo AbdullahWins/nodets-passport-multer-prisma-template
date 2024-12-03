@@ -1,6 +1,6 @@
 // src/utils/index.ts
 export * from "./errors";
-export * from "./helpers";
+export * from "./common";
 export * from "./bcrypt/bcrypt.utility";
 export * from "./email/email.utility";
 export * from "./file/file.utility";
