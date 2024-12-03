@@ -97,8 +97,22 @@ export const SignUpAdminService = async (
 
 // Get All Admins Service
 export const GetAllAdminsService = async (page: number, limit: number) => {
+  const cacheKey = `admins:${page}:${limit}`;
+
+  // Check Redis Cache
+  const cachedAdmins = await redisUtility.get<AdminResponseDto[]>(cacheKey);
+  if (cachedAdmins) {
+    return cachedAdmins;
+  }
+  // Get Admins from DB
   const { data, meta } = await getAllAdminsRepo(page, limit);
-  return { data: data.map((admin) => new AdminResponseDto(admin)), meta };
+  //  { data: data.map((admin) => new AdminResponseDto(admin)), meta };
+
+  const admins = data.map((admin) => new AdminResponseDto(admin), meta);
+  const processedData = { data: admins };
+  // Cache the result
+  await redisUtility.set(cacheKey, processedData);
+  return processedData;
 };
 
 // Get Admin by ID Service

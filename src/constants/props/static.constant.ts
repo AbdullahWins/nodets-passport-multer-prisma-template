@@ -92,4 +92,13 @@ export const staticProps = {
     EMAIL_MISSING: "Missing required field: email.",
     EMAIL_NOT_SENT: "Failed to send email to user.",
   },
+
+  redis: {
+    REDIS_CONNECTED: "Connected to Redis!",
+    REDIS_READY: "Redis is ready to accept commands!",
+    REDIS_ERROR: "Redis error:",
+    REDIS_CLOSE: "Redis connection is closed!",
+    REDIS_FLUSHED: "All keys are flushed from Redis",
+    REDIS_PASSWORD_ERROR: "Redis password error.",
+  },
 };
