@@ -21,8 +21,7 @@ import {
 import httpStatus from "http-status";
 import { emailProps, staticProps } from "../../constants";
 import { redisUtility } from "../../utilities";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../configs";
 
 // Admin Login Service
 export const SignInAdminService = async (loginData: IAdminLogin) => {

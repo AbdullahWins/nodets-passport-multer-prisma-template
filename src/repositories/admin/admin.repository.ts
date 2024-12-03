@@ -1,10 +1,9 @@
-import { PrismaClient, Admin } from "@prisma/client";
+import { Admin } from "@prisma/client";
 import { IAdminUpdate, IAdminSignup } from "../../interfaces";
 import { ApiError } from "../../utilities";
 import httpStatus from "http-status";
 import { staticProps } from "../../constants";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../configs";
 
 // Get all admins with pagination
 export const getAllAdminsRepo = async (page: number, limit: number) => {

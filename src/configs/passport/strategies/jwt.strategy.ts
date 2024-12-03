@@ -5,15 +5,13 @@ import {
   VerifiedCallback,
 } from "passport-jwt";
 import { IConfigureJwtStrategy, IJwtPayload } from "../../../interfaces";
-import { PrismaClient } from "@prisma/client";
 import {
   ENUM_ADMIN_ROLES,
   // ENUM_STORE_ROLES,
   // ENUM_USER_ROLES,
 } from "../../../constants";
 import { staticProps } from "../../../constants";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../database/prisma.config";
 
 export const configureJwtStrategy: IConfigureJwtStrategy = (
   jwtSecret: string
