@@ -1,4 +1,4 @@
-// src/utils/helpers/global/async.util.ts
+// src/middlewares/async.util.ts
 import { NextFunction, Request, RequestHandler, Response } from "express";
 
 export const catchAsync =

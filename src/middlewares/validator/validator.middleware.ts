@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { AnyZodObject, ZodEffects } from "zod";
+import { universalRequestSchema } from "../../validators";
 
-export const validatorMiddleware =
+const validatorMiddleware =
   (schema: AnyZodObject | ZodEffects<AnyZodObject>) =>
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -16,3 +17,7 @@ export const validatorMiddleware =
       next(error);
     }
   };
+
+export const primaryRequestValidator = validatorMiddleware(
+  universalRequestSchema
+);

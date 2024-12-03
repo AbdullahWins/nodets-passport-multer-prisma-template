@@ -8,8 +8,13 @@ import { promClientMiddleware } from "../monitor/monitor.middleware";
 import passport from "passport";
 import { configurePassport } from "../../configs/passport/passport.config";
 import { parseJsonBodyMiddleware } from "../parse/parse.middleware";
+import { primaryRequestValidator } from "../validator/validator.middleware";
 
 export const globalMiddleware = (app: Application) => {
+  //Validate request primarily
+  app.use(primaryRequestValidator);
+
+  // Add global middlewares
   app.use(cors());
   app.use(helmet());
   app.use(requestLoggerMiddleware);
