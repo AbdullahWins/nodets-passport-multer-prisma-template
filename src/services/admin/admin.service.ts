@@ -20,6 +20,7 @@ import {
 } from "../../repositories";
 import httpStatus from "http-status";
 import { emailProps, staticProps } from "../../constants";
+import { redisUtility } from "../../utilities";
 
 const prisma = new PrismaClient();
 
@@ -102,10 +103,20 @@ export const GetAllAdminsService = async (page: number, limit: number) => {
 
 // Get Admin by ID Service
 export const GetAdminByIdService = async (adminId: number) => {
+  const cacheKey = `admin:${adminId}`;
+
+  // Check Redis Cache
+  const cachedAdmin = await redisUtility.get<AdminResponseDto>(cacheKey);
+  if (cachedAdmin) {
+    return cachedAdmin;
+  }
+  // Get Admin from DB
   const admin = await getAdminByIdRepo(adminId);
   if (!admin) {
     throw new ApiError(httpStatus.NOT_FOUND, staticProps.common.NOT_FOUND);
   }
+  // Cache the result
+  await redisUtility.set(cacheKey, new AdminResponseDto(admin));
   return new AdminResponseDto(admin);
 };
 

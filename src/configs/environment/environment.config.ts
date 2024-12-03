@@ -14,11 +14,16 @@ export const environment = {
     SERVER_BASE_URL: process.env.SERVER_BASE_URL || "http://localhost:6000",
   },
 
+  db: {
+    REDIS_URL: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+  },
+
   jwt: {
     JWT_ACCESS_TOKEN_SECRET: process.env.JWT_ACCESS_TOKEN_SECRET || "default",
     JWT_ACCESS_TOKEN_EXPIRATION_TIME:
       process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME || "15m",
   },
+
   google: {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "default",
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "default",

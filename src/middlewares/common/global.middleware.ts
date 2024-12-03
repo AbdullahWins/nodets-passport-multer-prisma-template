@@ -10,9 +10,13 @@ import { configurePassport } from "../../configs/passport/passport.config";
 import { parseJsonBodyMiddleware } from "../parse/parse.middleware";
 import { primaryRequestValidator } from "../validator/validator.middleware";
 import { corsConfig } from "../../configs/cors/cors.config";
+import { infoLogger } from "../../utilities";
+import { environment } from "../../configs";
 
 export const globalMiddleware = (app: Application) => {
-  //Validate request primarily
+  // Load all configurations
+  infoLogger.info(`Server starting on port ${environment.server.SERVER_PORT}`);
+  // Validate request primarily
   app.use(primaryRequestValidator);
 
   // Add global middlewares
