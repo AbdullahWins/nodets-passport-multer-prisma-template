@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import { IAdminLogin, IAdminSignup, IAdminUpdate } from "../../interfaces";
 import {
   ApiError,
