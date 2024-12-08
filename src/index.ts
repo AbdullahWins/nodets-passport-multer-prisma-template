@@ -5,6 +5,7 @@ import { checkImageExists, globalMiddleware } from "./middlewares";
 import { globalErrorHandler } from "./utilities";
 import { apiRouter } from "./routers/main/routes";
 import { metricsRouter, notFoundRouter } from "./routers";
+import { getWebSocketInstance } from "./configs/server/socket.config";
 
 export const app: Application = express();
 
@@ -30,3 +31,10 @@ app.use(notFoundRouter);
 
 // server & database
 startServer(app);
+
+const io = getWebSocketInstance();
+
+//set a timeout of 5 seconds
+setTimeout(() => {
+  io.emit("notification", "hello socket!");
+}, 5000);

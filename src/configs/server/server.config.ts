@@ -1,37 +1,42 @@
-// src/configs/server/server.config.ts
 import { Application } from "express";
-import { Server } from "http";
+import { createServer, Server as HTTPServer } from "http";
 import { connectToPostgres } from "../database/prisma.config";
 import { environment } from "../environment/environment.config";
-import { errorLogger, infoLogger } from "../../utilities";
+import { errorLogger, infoLogger } from "../../utilities"; // Import WebSocket initialization
+import { initializeWebSocket } from "./socket.config";
 
-// Server related work
+// Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
-  errorLogger.error(`Uncaught exception server: ${error.message}`);
+  errorLogger.error(`Uncaught exception: ${error.message}`);
   process.exit(1);
 });
 
-// Server listener
-export const startServer = async (app: Application) => {
-  let server: Server;
+// Start the server
+export const startServer = async (app: Application): Promise<HTTPServer> => {
   try {
-    // server listen
-    server = app.listen(environment.server.SERVER_PORT, async () => {
-      // connect to database after server started
-      await connectToPostgres(); // Await the connection
+    // Create an HTTP server instance
+    const httpServer: HTTPServer = createServer(app);
+
+    // Initialize WebSocket server
+    initializeWebSocket(httpServer);
+
+    // Start listening on the specified port
+    httpServer.listen(environment.server.SERVER_PORT, async () => {
+      // Connect to the database after starting the server
+      await connectToPostgres();
 
       infoLogger.info(
-        `Listening on port http://localhost:${environment.server.SERVER_PORT}/api/v1`
+        `Server running at http://localhost:${environment.server.SERVER_PORT}/api/v1`
       );
     });
+
+    return httpServer; // Return the server instance if needed
   } catch (error) {
     errorLogger.error(
-      `Error creating server: ${
-        error instanceof Error ? error.message : "unknown"
+      `Error starting server: ${
+        error instanceof Error ? error.message : "Unknown error"
       }`
     );
     process.exit(1);
   }
-  // Optionally return the server instance if needed
-  return server;
 };
