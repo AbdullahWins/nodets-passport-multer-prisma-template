@@ -39,6 +39,7 @@ class AdminDtoBase implements Partial<IAdmin> {
 // Extended Admin DTO with additional properties for response shaping
 export class AdminResponseDto extends AdminDtoBase {
   constructor(admin: IAdmin) {
-    super(admin); // Inherit the base properties and initialize
+    // Inherit the base properties and initialize the extended properties
+    super(admin);
   }
 }

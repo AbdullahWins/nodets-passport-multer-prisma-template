@@ -20,10 +20,6 @@ export const getFileUrl = (filePath?: string): string => {
 
   // Ensure the file path uses forward slashes for URLs
   const normalizedPath = filePath.replace(/\\/g, "/");
-
   const fileUrl = `${baseUrl}/${normalizedPath}`;
-
-  console.log("fileUrl", fileUrl);
-
   return fileUrl;
 };

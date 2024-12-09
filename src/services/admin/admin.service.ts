@@ -1,10 +1,17 @@
-import { IAdminLogin, IAdminSignup, IAdminUpdate } from "../../interfaces";
+import httpStatus from "http-status";
+import {
+  IAdminLogin,
+  IAdminSignup,
+  IAdminUpdate,
+  IMetaData,
+} from "../../interfaces";
 import {
   ApiError,
   generateJwtToken,
   hashPassword,
   removeFile,
   sendEmail,
+  sendNotification,
   uploadFiles,
   validateZodSchema,
 } from "../../utilities";
@@ -17,7 +24,6 @@ import {
   updateAdminByIdRepo,
   deleteAdminByIdRepo,
 } from "../../repositories";
-import httpStatus from "http-status";
 import { emailProps, staticProps } from "../../constants";
 import { redisUtility } from "../../utilities";
 import { prisma } from "../../configs";
@@ -34,6 +40,14 @@ export const SignInAdminService = async (loginData: IAdminLogin) => {
       staticProps.common.INVALID_CREDENTIALS
     );
   }
+
+  //send notification
+  const data = {
+    recipients: [admin.id.toString(), "66"],
+    message: "You have successfully logged in",
+  };
+
+  sendNotification(data);
 
   const token = generateJwtToken(admin);
   return { accessToken: token, admin: new AdminResponseDto(admin) };
@@ -98,17 +112,22 @@ export const GetAllAdminsService = async (page: number, limit: number) => {
   const cacheKey = `admins:${page}:${limit}`;
 
   // Check Redis Cache
-  const cachedAdmins = await redisUtility.get<AdminResponseDto[]>(cacheKey);
+  const cachedAdmins = await redisUtility.get<{
+    data: AdminResponseDto[];
+    meta: IMetaData;
+  }>(cacheKey);
   if (cachedAdmins) {
     return cachedAdmins;
   }
+
   // Get Admins from DB
   const { data, meta } = await getAllAdminsRepo(page, limit);
-  //  { data: data.map((admin) => new AdminResponseDto(admin)), meta };
 
-  const admins = data.map((admin) => new AdminResponseDto(admin), meta);
-  const processedData = { data: admins };
-  // Cache the result
+  // Map the data to AdminResponseDto and return with meta
+  const admins = data.map((admin) => new AdminResponseDto(admin));
+  const processedData = { data: admins, meta };
+
+  // Cache the result without an extra "data" wrapper
   await redisUtility.set(cacheKey, processedData);
   return processedData;
 };

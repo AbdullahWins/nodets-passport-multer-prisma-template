@@ -7,3 +7,4 @@ export * from "./monitor/monitor.config";
 export * from "./multer/multer.config";
 export * from "./server/server.config";
 export * from "./qrcode/qrcode.config";
+export * from "./server/socket.config";

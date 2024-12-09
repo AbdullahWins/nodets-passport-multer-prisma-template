@@ -11,11 +11,14 @@ export const compressImage = async (
   maxRetries: number = 10 // Maximum number of retries to avoid infinite loop
 ): Promise<string> => {
   try {
+    // Get the file extension and create a temporary output path
     const extname = path.extname(inputPath).toLowerCase();
     const tempOutputPath = inputPath + ".temp";
 
+    // Read the image using Sharp
     let image = sharp(inputPath);
-    let currentQuality = 80; // Initial quality
+    // Initial quality
+    let currentQuality = 80;
 
     // Compress until the file size is less than the target size
     let retries = 0;
@@ -28,6 +31,7 @@ export const compressImage = async (
       // Reset the image for each iteration
       image = sharp(inputPath);
 
+      // Adjust the quality based on the file type
       if (extname === ".jpg" || extname === ".jpeg") {
         image = image.jpeg({ quality: currentQuality });
       } else if (extname === ".png") {
@@ -47,15 +51,12 @@ export const compressImage = async (
 
       // Reduce the quality for the next iteration if the file is still too large
       if (fileSize > targetSize) {
-        console.log("Current quality:", currentQuality);
         currentQuality = Math.max(currentQuality - qualityStep, 10); // Don't reduce below 10% quality
       }
     }
 
     // Replace the original file with the compressed version
     fs.renameSync(tempOutputPath, inputPath);
-
-    console.log("Image compressed to target size successfully:", inputPath);
     return inputPath; // Return the path of the original file (now compressed)
   } catch (error) {
     console.error("Error compressing image:", error);

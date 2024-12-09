@@ -1,5 +1,5 @@
 import { Admin } from "@prisma/client";
-import { IAdminUpdate, IAdminSignup } from "../../interfaces";
+import { IAdminUpdate, IAdminSignup, IMetaData } from "../../interfaces";
 import { ApiError } from "../../utilities";
 import httpStatus from "http-status";
 import { staticProps } from "../../constants";
@@ -13,11 +13,12 @@ export const getAllAdminsRepo = async (page: number, limit: number) => {
       take: limit,
     });
 
-    const totalAdmins = await prisma.admin.count();
+    const total = await prisma.admin.count();
+    const meta: IMetaData = { total, page, limit };
 
     return {
       data: admins,
-      meta: { totalAdmins, page, limit },
+      meta: meta,
     };
   } catch (error) {
     throw new ApiError(

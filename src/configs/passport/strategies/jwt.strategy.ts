@@ -12,6 +12,7 @@ import {
 } from "../../../constants";
 import { staticProps } from "../../../constants";
 import { prisma } from "../../database/prisma.config";
+import { infoLogger } from "../../../utilities";
 
 export const configureJwtStrategy: IConfigureJwtStrategy = (
   jwtSecret: string
@@ -24,7 +25,7 @@ export const configureJwtStrategy: IConfigureJwtStrategy = (
   return new JwtStrategy(
     options,
     async (payload: IJwtPayload, done: VerifiedCallback) => {
-      console.log("Decoded JWT Payload: ", payload); // Ensure payload is correctly decoded
+      infoLogger.info(`JWT payload: ${JSON.stringify(payload)}`);
 
       try {
         // Directly determine and fetch the entity based on the role

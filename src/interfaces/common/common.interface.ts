@@ -5,6 +5,12 @@ export interface IOtpData {
   otp: string;
 }
 
+export interface IMetaData {
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface IErrorMessage {
   path?: string;
   message: string;
